@@ -1,17 +1,23 @@
 import requests
+import time
 
-def get_public_ip():
-    try:
-        # Make a request to a public IP service
-        response = requests.get('https://api.ipify.org?format=json')
-        response.raise_for_status()  # Raise an error for bad responses
-        ip_data = response.json()
-        return ip_data.get('ip')
-    except requests.RequestException as e:
-        print(f"Error fetching IP address: {e}")
-        return None
+def sse_client(url):
+    with requests.get(url, stream=True) as response:
+        if response.status_code == 200:
+            print("Connected to the SSE stream...")
+            for line in response.iter_lines():
+                if line:
+                    # Decode and print the message
+                    decoded_line = line.decode('utf-8')
+                    if decoded_line.startswith('data: '):
+                        message = decoded_line[len('data: '):]
+                        print(f"Received message: {message}")
+                # Add a short sleep to prevent excessive CPU usage
+                time.sleep(0.1)
+        else:
+            print(f"Failed to connect, status code: {response.status_code}")
 
 if __name__ == '__main__':
-    public_ip = get_public_ip()
-    if public_ip:
-        print(f"Your public IP address is: {public_ip}")
+    # URL of the SSE endpoint
+    sse_url = 'https://blazgo.epizy.com/vm/vm.php'
+    sse_client(sse_url)
