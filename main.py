@@ -41,14 +41,10 @@ def upsert_to_supabase(image_base64, cursor_x, cursor_y, click_x, click_y, supab
             "cursor_x": cursor_x,
             "cursor_y": cursor_y,
             "click_x": click_x,
-            "click_y": click_y,
-            "created_at": time.time()
+            "click_y": click_y
         }
         response = supabase_client.table(TABLE_NAME).upsert(data, on_conflict=["id"]).execute()
-        if response.status_code == 200:
-            print("Screenshot, cursor, and click position upserted.")
-        else:
-            print("Failed to upsert screenshot.")
+        
     except Exception as e:
         print(f"Error updating Supabase: {e}")
 
@@ -70,21 +66,21 @@ def server_loop():
         # Upsert the data to Supabase
         upsert_to_supabase(screenshot_base64, cursor_x, cursor_y, click_x, click_y, supabase_client)
         
-        time.sleep(1)  # Adjust to control how often the server updates the screen
+        time.sleep(0.5)  # Adjust to control how often the server updates the screen
 
 # Listen for cursor and click events from the client
 def listen_for_client_commands(supabase_client):
     while True:
         # Get the latest client input (cursor movement or click)
         response = supabase_client.table(TABLE_NAME).select("*").eq("id", 1).execute()
-        if response.status_code == 200:
-            data = response.data[0]
-            # Check if there's any update on click or cursor position
-            click_x = data.get('click_x')
-            click_y = data.get('click_y')
-            if click_x and click_y:
-                click_mouse(click_x, click_y)
-            move_cursor(data['cursor_x'], data['cursor_y'])
+        
+        data = response.data[0]
+        # Check if there's any update on click or cursor position
+        click_x = data.get('click_x')
+        click_y = data.get('click_y')
+        if click_x and click_y:
+            click_mouse(click_x, click_y)
+        move_cursor(data['cursor_x'], data['cursor_y'])
 
         time.sleep(1)  # Poll the table every second for updates
 
