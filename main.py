@@ -76,4 +76,23 @@ def server_loop():
 def listen_for_client_commands(supabase_client):
     while True:
         # Get the latest client input (cursor movement or click)
-        response = supabase_cli
+        response = supabase_client.table(TABLE_NAME).select("*").eq("id", 1).execute()
+        if response.status_code == 200:
+            data = response.data[0]
+            # Check if there's any update on click or cursor position
+            click_x = data.get('click_x')
+            click_y = data.get('click_y')
+            if click_x and click_y:
+                click_mouse(click_x, click_y)
+            move_cursor(data['cursor_x'], data['cursor_y'])
+
+        time.sleep(1)  # Poll the table every second for updates
+
+# Run server loop in separate thread
+def start_server():
+    supabase_client = init_supabase()
+    threading.Thread(target=server_loop, args=()).start()
+    listen_for_client_commands(supabase_client)
+
+if __name__ == "__main__":
+    start_server()
