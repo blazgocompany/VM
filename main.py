@@ -32,17 +32,12 @@ def upsert_to_supabase(image_base64, supabase_client):
         # Prepare data to upsert. You can use an arbitrary unique id like '1' for this purpose.
         data = {
             "id": 1,  # This is the unique identifier; you can use any constant here
-            "image": image_base64,
-            "created_at": time.time()  # You can also use the current time to track updates
+            "image": image_base64
         }
         
         # Upsert data (insert if it doesn't exist, update if it does)
         response = supabase_client.table(TABLE_NAME).upsert(data, on_conflict=["id"]).execute()
         
-        if response.status_code == 200:
-            print("Screenshot upserted successfully!")
-        else:
-            print(f"Failed to upsert screenshot: {response.status_code}")
     
     except Exception as e:
         print(f"Error updating screenshot: {e}")
@@ -59,7 +54,7 @@ def main():
         upsert_to_supabase(screenshot_base64, supabase_client)
         
         # Add a delay between screenshots (adjust the frequency as needed)
-        time.sleep(1)
+        time.sleep(0.5)
 
 if __name__ == "__main__":
     main()
