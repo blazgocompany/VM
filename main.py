@@ -1,9 +1,10 @@
-import pyautogui
-import io
-import base64
-from PIL import Image
-from supabase import Client, create_client
 import time
+import base64
+import io
+from PIL import ImageGrab, Image
+import pyautogui
+from supabase import create_client
+import threading
 
 # Supabase settings (replace with your own Supabase project details)
 SUPABASE_URL = "https://satmvokneygpwesdfdwx.supabase.co"
@@ -14,47 +15,65 @@ TABLE_NAME = "screenshots"
 def init_supabase():
     return create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# Capture screen as an image and convert to base64
+# Function to capture the screen and send it to Supabase
 def capture_screen():
-    # Capture the screen
-    screenshot = pyautogui.screenshot()
-    # Save screenshot to a BytesIO object
+    screenshot = ImageGrab.grab()
     byte_io = io.BytesIO()
     screenshot.save(byte_io, format="PNG")
     byte_io.seek(0)
-    # Convert the image to base64 encoding for sending
     image_base64 = base64.b64encode(byte_io.read()).decode("utf-8")
     return image_base64
 
-# Update or insert a single screenshot to Supabase (upsert)
-def upsert_to_supabase(image_base64, supabase_client):
+# Function to simulate cursor movement
+def move_cursor(x, y):
+    pyautogui.moveTo(x, y)
+
+# Function to simulate mouse click
+def click_mouse(x, y):
+    pyautogui.click(x, y)
+
+# Function to upsert the screenshot and cursor to Supabase
+def upsert_to_supabase(image_base64, cursor_x, cursor_y, click_x, click_y, supabase_client):
     try:
-        # Prepare data to upsert. You can use an arbitrary unique id like '1' for this purpose.
         data = {
-            "id": 1,  # This is the unique identifier; you can use any constant here
-            "image": image_base64
+            "id": 1,  # Use a fixed ID for a single row
+            "image": image_base64,
+            "cursor_x": cursor_x,
+            "cursor_y": cursor_y,
+            "click_x": click_x,
+            "click_y": click_y,
+            "created_at": time.time()
         }
-        
-        # Upsert data (insert if it doesn't exist, update if it does)
         response = supabase_client.table(TABLE_NAME).upsert(data, on_conflict=["id"]).execute()
-        
-    
+        if response.status_code == 200:
+            print("Screenshot, cursor, and click position upserted.")
+        else:
+            print("Failed to upsert screenshot.")
     except Exception as e:
-        print(f"Error updating screenshot: {e}")
+        print(f"Error updating Supabase: {e}")
 
-# Main loop to continuously capture and send screenshots
-def main():
+# Function to simulate server actions (capture screen and process updates)
+def server_loop():
     supabase_client = init_supabase()
-    
+    click_position = None
     while True:
-        # Capture the screen
+        # Capture the screen and get cursor position
         screenshot_base64 = capture_screen()
+        cursor_x, cursor_y = pyautogui.position()
         
-        # Upsert to Supabase
-        upsert_to_supabase(screenshot_base64, supabase_client)
-        
-        # Add a delay between screenshots (adjust the frequency as needed)
-        time.sleep(0.5)
+        # Check if there is a click position update from the client
+        if click_position:
+            click_x, click_y = click_position
+        else:
+            click_x, click_y = None, None
 
-if __name__ == "__main__":
-    main()
+        # Upsert the data to Supabase
+        upsert_to_supabase(screenshot_base64, cursor_x, cursor_y, click_x, click_y, supabase_client)
+        
+        time.sleep(1)  # Adjust to control how often the server updates the screen
+
+# Listen for cursor and click events from the client
+def listen_for_client_commands(supabase_client):
+    while True:
+        # Get the latest client input (cursor movement or click)
+        response = supabase_cli
