@@ -33,4 +33,4 @@ jobs:
     # Step 5: Run the screen-mirroring script
     - name: Run screen-mirroring script
       run: |
-        python screen_mirror.py  # Make sure your Python script is named "screen_mirror.py" or adjust accordingly
+        python main.py 
