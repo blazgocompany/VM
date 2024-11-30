@@ -22,7 +22,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pyautogui supabase-python pillow
+        pip install pyautogui supabase pillow
     
     # Step 4: Set up environment variables from GitHub Secrets
     - name: Set up environment variables
