@@ -1,0 +1,57 @@
+name: Test Internet Speed
+
+on:
+  workflow_dispatch:
+
+jobs:
+  speedtest-ubuntu:
+    name: Test on Ubuntu
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies on Ubuntu
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip
+          pip3 install speedtest-cli
+
+      - name: Run speedtest on Ubuntu
+        run: |
+          speedtest-cli --simple
+
+  speedtest-windows:
+    name: Test on Windows
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies on Windows
+        run: |
+          choco install python
+          python -m pip install speedtest-cli
+
+      - name: Run speedtest on Windows
+        run: |
+          speedtest-cli --simple
+
+  speedtest-macos:
+    name: Test on macOS
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies on macOS
+        run: |
+          brew install python
+          pip3 install speedtest-cli
+
+      - name: Run speedtest on macOS
+        run: |
+          speedtest-cli --simple
